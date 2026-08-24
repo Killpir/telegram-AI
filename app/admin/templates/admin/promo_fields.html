@@ -1,0 +1,15 @@
+{% set x = edit if edit is defined else none %}
+<div class="form-grid">
+<label>Код<input name="code" value="{{ x.code if x else '' }}" required></label>
+<label>Тариф<select name="plan_id"><option value="">Любой</option>{% for p in plans %}<option value="{{ p.id }}" {% if x and x.plan_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>
+<label>Скидка %<input name="discount_percent" value="{{ x.discount_percent if x and x.discount_percent is not none else '' }}" inputmode="decimal"></label>
+<label>Скидка ₽<input name="discount_fixed_rub" value="{{ x.discount_fixed_rub if x and x.discount_fixed_rub is not none else '' }}" inputmode="decimal"></label>
+<label>Бесплатных дней<input type="number" min="0" name="free_days" value="{{ x.free_days if x else 0 }}"></label>
+<label>+ запросов<input type="number" min="0" name="additional_requests" value="{{ x.additional_requests if x else 0 }}"></label>
+<label>+ smart<input type="number" min="0" name="additional_smart_requests" value="{{ x.additional_smart_requests if x else 0 }}"></label>
+<label>Макс. активаций<input type="number" min="1" name="max_activations" value="{{ x.max_activations if x and x.max_activations else '' }}"></label>
+<label>На пользователя<input type="number" min="1" name="per_user_limit" value="{{ x.per_user_limit if x else 1 }}"></label>
+<label>Начало<input type="datetime-local" name="starts_at" value="{{ x.starts_at.strftime('%Y-%m-%dT%H:%M') if x and x.starts_at else '' }}"></label>
+<label>Окончание<input type="datetime-local" name="ends_at" value="{{ x.ends_at.strftime('%Y-%m-%dT%H:%M') if x and x.ends_at else '' }}"></label>
+<label class="switch-label field-switch"><input type="checkbox" name="is_active" {% if not x or x.is_active %}checked{% endif %}> Активен</label>
+</div><label>Описание<textarea name="description" rows="2">{{ x.description if x and x.description else '' }}</textarea></label>

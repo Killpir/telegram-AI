@@ -1,0 +1,58 @@
+<div class="grid-2">
+  <section class="card form-card">
+    <h2>Сообщение</h2>
+    <div class="stack section-gap">
+      <label>Название<input name="name" maxlength="160" required value="{{ broadcast.name if broadcast else '' }}"></label>
+      <label>Telegram HTML<textarea id="broadcast-text" name="text" rows="10" required>{{ broadcast.text if broadcast else '' }}</textarea></label>
+      <label>Изображение JPEG/PNG/WEBP, до 10 МБ<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      {% if broadcast and broadcast.image_path %}
+        <label class="switch-label"><input type="checkbox" name="remove_image" value="1"> Удалить текущее изображение</label>
+        <small>Файл: {{ broadcast.image_path }}</small>
+      {% endif %}
+      <label>URL-кнопки — одна на строку, формат «Текст | URL»
+        <textarea name="buttons_text" rows="5" placeholder="Продлить | https://example.com/pay">{{ buttons_text }}</textarea>
+      </label>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Предпросмотр</h2>
+    <div class="telegram-preview section-gap"><div id="broadcast-preview" class="message-cell"></div></div>
+    <p class="muted">HTML здесь показывается как безопасный текст. Точный Telegram-рендер проверяйте кнопкой «Тест админу».</p>
+  </section>
+</div>
+
+<section class="card section-gap form-card">
+  <div class="card-head"><div><h2>Аудитория</h2><p class="muted">Все заполненные условия объединяются через AND. Заблокировавшие бота и заблокированные администратором всегда исключаются.</p></div></div>
+  <div class="form-grid filters-grid">
+    <label>Доступ
+      <select name="access">
+        {% set access = broadcast.filters.get('access','') if broadcast else '' %}
+        <option value="" {{ 'selected' if not access else '' }}>Все пользователи</option>
+        <option value="active_subscription" {{ 'selected' if access == 'active_subscription' else '' }}>Активная подписка</option>
+        <option value="no_subscription" {{ 'selected' if access == 'no_subscription' else '' }}>Без активной подписки</option>
+        <option value="active_trial" {{ 'selected' if access == 'active_trial' else '' }}>Активный trial</option>
+        <option value="trial_ended" {{ 'selected' if access == 'trial_ended' else '' }}>Trial закончился</option>
+      </select>
+    </label>
+    <label>Покупки
+      {% set purchase = broadcast.filters.get('purchase','') if broadcast else '' %}
+      <select name="purchase"><option value="">Любые</option><option value="never" {{ 'selected' if purchase == 'never' else '' }}>Никогда не покупал</option><option value="paid" {{ 'selected' if purchase == 'paid' else '' }}>Покупал хотя бы раз</option></select>
+    </label>
+    <label>Текущий тариф
+      {% set selected_plan = broadcast.filters.get('plan_id') if broadcast else None %}
+      <select name="plan_id"><option value="">Любой</option>{% for p in plans %}<option value="{{ p.id }}" {{ 'selected' if selected_plan == p.id else '' }}>{{ p.name }}</option>{% endfor %}</select>
+    </label>
+    <label>Платёжная система
+      {% set selected_provider = broadcast.filters.get('provider','') if broadcast else '' %}
+      <select name="provider"><option value="">Любая</option>{% for p in providers %}<option value="{{ p.provider }}" {{ 'selected' if selected_provider == p.provider else '' }}>{{ p.provider }}</option>{% endfor %}</select>
+    </label>
+    <label>Подписка закончится ровно через N дней<input type="number" min="0" max="3650" name="subscription_expires_in_days" value="{{ broadcast.filters.get('subscription_expires_in_days') if broadcast and broadcast.filters.get('subscription_expires_in_days') is not none else '' }}" placeholder="0 / 1 / 2 / 3 / N"></label>
+    <label>Истекла: минимум дней назад<input type="number" min="0" max="3650" name="expired_min_days_ago" value="{{ broadcast.filters.get('expired_min_days_ago') if broadcast and broadcast.filters.get('expired_min_days_ago') is not none else '' }}" placeholder="0"></label>
+    <label>Истекла: максимум дней назад<input type="number" min="0" max="3650" name="expired_max_days_ago" value="{{ broadcast.filters.get('expired_max_days_ago') if broadcast and broadcast.filters.get('expired_max_days_ago') is not none else '' }}" placeholder="7 / 30"></label>
+    <label>Неактивен минимум N дней<input type="number" min="1" max="3650" name="inactive_days" value="{{ broadcast.filters.get('inactive_days') if broadcast and broadcast.filters.get('inactive_days') is not none else '' }}" placeholder="7 / 14 / 30"></label>
+    <label>Регистрация с<input type="date" name="registered_from" value="{{ broadcast.filters.get('registered_from') if broadcast and broadcast.filters.get('registered_from') else '' }}"></label>
+    <label>Регистрация по<input type="date" name="registered_to" value="{{ broadcast.filters.get('registered_to') if broadcast and broadcast.filters.get('registered_to') else '' }}"></label>
+  </div>
+  <p class="muted">Примеры: «закончилась сегодня» = 0…0; «вчера» = 1…1; «последние 7 дней» = 0…7; «закончится через 3 дня» = N=3.</p>
+</section>
+

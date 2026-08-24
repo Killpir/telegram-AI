@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Тарифы полностью редактируются без изменения кода.</p>{% endblock %}
+{% block content %}
+<details class="card" open><summary><b>Создать тариф</b></summary>
+<form method="post" action="/admin/plans" class="form-card">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="form-grid">
+<label>Код<input name="code" pattern="[a-z0-9_-]+" placeholder="pro" required></label>
+<label>Название<input name="name" placeholder="Pro" required></label>
+<label>Цена ₽<input name="price_rub" value="0" inputmode="decimal" required></label>
+<label>Цена Stars<input name="price_stars" inputmode="numeric"></label>
+<label>Цена USD<input name="price_usd" inputmode="decimal"></label>
+<label>Дней<input name="duration_days" value="30" type="number" min="1" required></label>
+<label>Запросов<input name="requests_limit" value="100" type="number" min="0" required></label>
+<label>Smart-запросов<input name="smart_requests_limit" value="0" type="number" min="0" required></label>
+<label>Input tokens<input name="input_tokens_limit" value="1000000" type="number" min="1" required></label>
+<label>Output tokens<input name="output_tokens_limit" value="250000" type="number" min="1" required></label>
+<label>Max output / ответ<input name="max_output_tokens" value="4096" type="number" min="128" required></label>
+<label>Порядок<input name="sort_order" value="100" type="number" min="0" required></label>
+<label class="switch-label field-switch"><input type="checkbox" name="is_active" checked> Включён</label>
+<label class="switch-label field-switch"><input type="checkbox" name="is_recommended"> Рекомендуемый</label>
+</div>
+<label>Описание<textarea name="description" rows="2"></textarea></label>
+<div class="actions"><button class="button primary">Создать тариф</button></div>
+</form></details>
+<div class="stack-lg section-gap">
+{% for plan in plans %}
+<form method="post" action="/admin/plans/{{ plan.id }}" class="card form-card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="card-head"><div><h2>{{ plan.name }} <small>#{{ plan.id }}</small></h2><code>{{ plan.code }}</code></div><label class="switch-label"><input type="checkbox" name="is_active" {% if plan.is_active %}checked{% endif %}> Включён</label></div>
+  <div class="form-grid">
+    <label>Название<input name="name" value="{{ plan.name }}" required></label>
+    <label>Цена ₽<input name="price_rub" value="{{ plan.price_rub }}" inputmode="decimal" required></label>
+    <label>Цена Stars<input name="price_stars" value="{{ plan.price_stars or '' }}" inputmode="numeric"></label>
+    <label>Цена USD<input name="price_usd" value="{{ plan.price_usd or '' }}" inputmode="decimal"></label>
+    <label>Дней<input name="duration_days" value="{{ plan.duration_days }}" type="number" min="1" required></label>
+    <label>Запросов<input name="requests_limit" value="{{ plan.requests_limit }}" type="number" min="0" required></label>
+    <label>Smart-запросов<input name="smart_requests_limit" value="{{ plan.smart_requests_limit }}" type="number" min="0" required></label>
+    <label>Input tokens<input name="input_tokens_limit" value="{{ plan.input_tokens_limit }}" type="number" min="1" required></label>
+    <label>Output tokens<input name="output_tokens_limit" value="{{ plan.output_tokens_limit }}" type="number" min="1" required></label>
+    <label>Max output / ответ<input name="max_output_tokens" value="{{ plan.max_output_tokens }}" type="number" min="128" required></label>
+    <label>Порядок<input name="sort_order" value="{{ plan.sort_order }}" type="number" min="0" required></label>
+    <label class="switch-label field-switch"><input type="checkbox" name="is_recommended" {% if plan.is_recommended %}checked{% endif %}> Рекомендуемый</label>
+  </div>
+  <label>Описание<textarea name="description" rows="3">{{ plan.description or '' }}</textarea></label>
+  <div class="actions"><button class="button primary" type="submit">Сохранить тариф</button><button class="button danger-button" type="submit" formaction="/admin/plans/{{ plan.id }}/delete" data-confirm="Удалить тариф можно только если он нигде не использовался. Продолжить?">Удалить безопасно</button></div>
+</form>
+{% endfor %}
+</div>
+{% endblock %}

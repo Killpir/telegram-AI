@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Общие настройки, экономика и политика доступа администраторов.</p>{% endblock %}
+{% block content %}
+<form method="post" class="card form-card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="form-grid">
+    <label>Название проекта<input name="service_name" value="{{ values.get('service.name','Telegram AI SaaS') }}"></label>
+    <label>Username бота<input name="bot_username" value="{{ values.get('service.bot_username','') }}"></label>
+    <label>Support username<input name="support_username" value="{{ values.get('service.support_username','') }}"></label>
+    <label>USD → RUB для экономики<input type="number" min="0" step="0.01" name="usd_to_rub" value="{{ values.get('economics.usd_to_rub',0) }}"><small>0 — gross profit не рассчитывается. Курс задаётся вручную.</small></label>
+    <label class="switch-label field-switch"><input type="checkbox" name="maintenance_mode" {% if values.get('service.maintenance_mode',false) %}checked{% endif %}> Maintenance mode</label>
+    <label class="switch-label field-switch"><input type="checkbox" name="allow_admin_dialog_access" {% if values.get('privacy.allow_admin_dialog_access',false) %}checked{% endif %}> Разрешить просмотр истории диалогов</label>
+    <label>Рассылка, сообщений/с<input type="number" min="1" max="30" name="broadcast_messages_per_second" value="{{ values.get('broadcasts.messages_per_second',25) }}"><small>Обычный бесплатный режим Telegram.</small></label>
+    <label>Макс. попыток получателю<input type="number" min="1" max="10" name="broadcast_max_attempts" value="{{ values.get('broadcasts.max_attempts',4) }}"></label>
+  </div>
+  <label>Приветствие<textarea name="welcome_text" rows="4">{{ values.get('service.welcome_text','') }}</textarea></label>
+  <label>Помощь<textarea name="help_text" rows="4">{{ values.get('service.help_text','') }}</textarea></label>
+  <label>Сообщение техработ<textarea name="maintenance_text" rows="3">{{ values.get('service.maintenance_text','🛠 Проводятся технические работы. Попробуйте немного позже.') }}</textarea></label>
+  <div class="actions"><button class="button primary">Сохранить</button></div>
+</form>
+<div class="card section-gap"><h2>Как считается прибыль</h2><p class="muted">Выручка не смешивает валюты. Gross profit в ₽ = RUB-выручка − RUB-комиссии − OpenAI cost в USD × заданный курс USD/RUB. XTR и криптовалюты показываются отдельно и не превращаются в рубли без явного курса.</p></div>
+{% endblock %}

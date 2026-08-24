@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: ai_bot_test
+          POSTGRES_USER: ai_bot
+          POSTGRES_PASSWORD: test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ai_bot -d ai_bot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      APP_ENV: test
+      SECRET_KEY: ci-only-secret-ci-only-secret-ci-only-secret
+      WEBHOOK_SECRET: ci-only-webhook-secret-ci-only-webhook-secret
+      DATABASE_URL: postgresql+asyncpg://ai_bot:test-password@127.0.0.1:5432/ai_bot_test
+      REDIS_URL: redis://127.0.0.1:6379/0
+      CELERY_BROKER_URL: redis://127.0.0.1:6379/1
+      CELERY_RESULT_BACKEND: redis://127.0.0.1:6379/2
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      RUN_INTEGRATION: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && pip install '.[test]'
+      - name: Compile
+        run: python -m compileall -q app alembic tests
+      - name: Migrate PostgreSQL
+        run: alembic upgrade head
+      - name: Tests
+        run: pytest -q
+      - name: Verify migration head
+        run: alembic current && alembic heads

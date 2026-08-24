@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Создайте черновик, затем проверьте получателей и тестовую отправку.</p>{% endblock %}
+{% block content %}
+<form method="post" action="/admin/broadcasts" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% include "admin/broadcast_form_fields.html" %}
+  <div class="actions"><button class="primary" type="submit">Создать черновик</button><a class="button" href="/admin/broadcasts">Отмена</a></div>
+</form>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form method="post" class="card form-card narrow">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="form-grid">
+<label class="switch-label field-switch"><input type="checkbox" name="enabled" {% if values.get('trial.enabled', true) %}checked{% endif %}> Trial включён</label>
+<label class="switch-label field-switch"><input type="checkbox" name="auto_activate" {% if values.get('trial.auto_activate', false) %}checked{% endif %}> Автоактивация</label>
+<label>Длительность, дней<input type="number" min="1" name="duration_days" value="{{ values.get('trial.duration_days', 3) }}" required></label>
+<label>Обычных запросов<input type="number" min="0" name="requests_limit" value="{{ values.get('trial.requests_limit', 20) }}" required></label>
+<label>Smart-запросов<input type="number" min="0" name="smart_requests_limit" value="{{ values.get('trial.smart_requests_limit', 0) }}" required></label>
+<label>Input token limit<input type="number" min="1" name="input_tokens_limit" value="{{ values.get('trial.input_tokens_limit', 250000) }}" required></label>
+<label>Output token limit<input type="number" min="1" name="output_tokens_limit" value="{{ values.get('trial.output_tokens_limit', 80000) }}" required></label>
+</div><div class="actions"><button class="button primary">Сохранить</button></div>
+</form>
+{% endblock %}

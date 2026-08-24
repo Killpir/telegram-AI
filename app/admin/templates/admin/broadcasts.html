@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Черновики, запланированные и выполненные массовые отправки.</p>{% endblock %}
+{% block content %}
+<div class="actions"><a class="button primary" href="/admin/broadcasts/new">+ Новая рассылка</a></div>
+<div class="card table-card section-gap">
+  <div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Название</th><th>Статус</th><th>Запланирована</th><th>Прогресс</th><th>Создана</th></tr></thead>
+    <tbody>
+    {% for b in rows %}
+      <tr class="click-row" data-href="/admin/broadcasts/{{ b.id }}">
+        <td>#{{ b.id }}</td><td>{{ b.name }}</td>
+        <td><span class="badge {{ 'ok' if b.status == 'completed' else 'danger' if b.status == 'failed' else '' }}">{{ b.status }}</span></td>
+        <td>{{ b.scheduled_at.strftime('%Y-%m-%d %H:%M UTC') if b.scheduled_at else '—' }}</td>
+        <td>{{ b.sent }} sent / {{ b.failed }} failed / {{ b.blocked }} blocked / {{ b.total }}</td>
+        <td>{{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+    {% else %}<tr><td colspan="6" class="muted">Рассылок пока нет.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

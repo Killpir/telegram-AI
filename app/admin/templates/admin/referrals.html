@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}{% block content %}
+<form method="post" class="card form-card narrow"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="form-grid">
+<label class="switch-label field-switch"><input type="checkbox" name="enabled" {% if values.get('referral.enabled', true) %}checked{% endif %}> Реферальная система включена</label>
+<label>Бонус за регистрацию, запросов<input type="number" min="0" name="registration_bonus_requests" value="{{ values.get('referral.registration_bonus_requests',0) }}"></label>
+<label>Бонус после первой оплаты<input type="number" min="0" name="first_payment_bonus_requests" value="{{ values.get('referral.first_payment_bonus_requests',100) }}"></label>
+<label>Платящих друзей для milestone<input type="number" min="1" name="paying_friends_target" value="{{ values.get('referral.paying_friends_target',3) }}"></label>
+<label>Награда, дней<input type="number" min="0" name="milestone_reward_days" value="{{ values.get('referral.milestone_reward_days',30) }}"></label>
+<label>Тариф для бонуса<input name="milestone_plan_code" value="{{ values.get('referral.milestone_plan_code','plus') }}"></label>
+</div><div class="actions"><button class="button primary">Сохранить</button></div></form>{% endblock %}

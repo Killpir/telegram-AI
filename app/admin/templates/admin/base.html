@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title or 'Admin' }} — Telegram AI SaaS</title>
+  <link rel="stylesheet" href="/admin-static/admin.css">
+  <script src="/admin-static/admin.js" defer></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="/admin"><span class="brand-mark">AI</span><span>Telegram SaaS</span></a>
+    <nav>
+      <a href="/admin" class="{{ 'active' if request.url.path in ['/admin','/admin/'] else '' }}">Dashboard</a>
+      <a href="/admin/users" class="{{ 'active' if request.url.path.startswith('/admin/users') else '' }}">Пользователи</a>
+      <a href="/admin/subscriptions" class="{{ 'active' if request.url.path.startswith('/admin/subscriptions') else '' }}">Подписки</a>
+      <a href="/admin/payments" class="{{ 'active' if request.url.path == '/admin/payments' else '' }}">Платежи</a>
+      <a href="/admin/plans" class="{{ 'active' if request.url.path.startswith('/admin/plans') else '' }}">Тарифы</a>
+      <a href="/admin/trial" class="{{ 'active' if request.url.path.startswith('/admin/trial') else '' }}">Пробный доступ</a>
+      <a href="/admin/ai" class="{{ 'active' if request.url.path.startswith('/admin/ai') else '' }}">AI</a>
+      <a href="/admin/referrals" class="{{ 'active' if request.url.path.startswith('/admin/referrals') else '' }}">Рефералы</a>
+      <a href="/admin/promocodes" class="{{ 'active' if request.url.path.startswith('/admin/promocodes') else '' }}">Промокоды</a>
+      <a href="/admin/payment-providers" class="{{ 'active' if request.url.path.startswith('/admin/payment-providers') else '' }}">Платёжные системы</a>
+      <a href="/admin/errors" class="{{ 'active' if request.url.path.startswith('/admin/errors') else '' }}">Ошибки</a>
+      <a href="/admin/audit" class="{{ 'active' if request.url.path.startswith('/admin/audit') else '' }}">Аудит</a>
+      <a href="/admin/settings" class="{{ 'active' if request.url.path.startswith('/admin/settings') else '' }}">Настройки</a>
+      {% if admin and admin.role == 'superadmin' %}<a href="/admin/admins" class="{{ 'active' if request.url.path.startswith('/admin/admins') else '' }}">Администраторы</a>{% endif %}
+      <a href="/admin/broadcasts" class="{{ 'active' if request.url.path.startswith('/admin/broadcasts') else '' }}">Рассылки</a>
+      <a href="/admin/notifications" class="{{ 'active' if request.url.path.startswith('/admin/notifications') else '' }}">Уведомления</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div><strong>{{ admin.username }}</strong><br><small>{{ admin.role }}</small></div>
+      <form method="post" action="/admin/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="link-button" type="submit">Выйти</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><h1>{{ page_title }}</h1>{% block subtitle %}{% endblock %}</div></header>
+    {% if flash %}<div class="flash {{ flash.category }}">{{ flash.message }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

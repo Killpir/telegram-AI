@@ -1,0 +1,75 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Получатели админских событий, шаблоны напоминаний подписки и журнал доставки.</p>{% endblock %}
+{% block content %}
+<section class="metric-grid">
+  <article class="metric"><span>Отправлено</span><strong>{{ notification_stats.sent }}</strong></article>
+  <article class="metric"><span>Ошибки</span><strong>{{ notification_stats.failed }}</strong></article>
+  <article class="metric"><span>Заблокировали</span><strong>{{ notification_stats.blocked }}</strong></article>
+  <article class="metric"><span>Pending</span><strong>{{ notification_stats.pending }}</strong></article>
+</section>
+
+<section class="card section-gap">
+  <div class="card-head"><div><h2>Получатели админских уведомлений</h2><p class="muted">Каждый тип события включается независимо.</p></div></div>
+  {% if using_env_fallback %}
+  <div class="banner warning">Пока записей в БД нет, используется fallback <code>ADMIN_TELEGRAM_IDS</code>: {{ env_admin_ids|join(', ') if env_admin_ids else 'пусто' }}. После добавления первой записи источником истины станет этот раздел.</div>
+  {% endif %}
+  <form method="post" action="/admin/notifications/recipients" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="grow">Telegram ID<input type="number" name="telegram_id" min="1" required placeholder="123456789"></label>
+    <label class="grow">Метка<input name="label" maxlength="128" placeholder="Основной админ"></label>
+    <button class="button primary">Добавить</button>
+  </form>
+</section>
+
+<div class="stack-lg section-gap">
+{% for recipient in recipients %}
+  <article class="card">
+    <form method="post" action="/admin/notifications/recipients/{{ recipient.id }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="card-head"><div><h2>{{ recipient.label or 'Администратор' }}</h2><code>{{ recipient.telegram_id }}</code></div><label class="switch-label"><input type="checkbox" name="enabled" {% if recipient.enabled %}checked{% endif %}> Активен</label></div>
+      <div class="form-grid">
+        <label>Метка<input name="label" maxlength="128" value="{{ recipient.label or '' }}"></label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_new_user" {% if recipient.notify_new_user %}checked{% endif %}> Новый пользователь</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_trial" {% if recipient.notify_trial %}checked{% endif %}> Активация trial</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_purchase" {% if recipient.notify_purchase %}checked{% endif %}> Успешная покупка</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_payment_failed" {% if recipient.notify_payment_failed %}checked{% endif %}> Неуспешный платёж</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_openai_error" {% if recipient.notify_openai_error %}checked{% endif %}> Ошибка OpenAI</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_payment_error" {% if recipient.notify_payment_error %}checked{% endif %}> Ошибка платежей</label>
+        <label class="switch-label field-switch"><input type="checkbox" name="notify_critical_error" {% if recipient.notify_critical_error %}checked{% endif %}> Критическая ошибка</label>
+      </div>
+      <div class="actions"><button class="button primary">Сохранить</button></div>
+    </form>
+    <form method="post" action="/admin/notifications/recipients/{{ recipient.id }}/delete" onsubmit="return confirm('Удалить получателя?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button danger-button">Удалить</button>
+    </form>
+  </article>
+{% endfor %}
+</div>
+
+<section class="card section-gap">
+  <div class="card-head"><div><h2>Окончание подписки</h2><p class="muted">Разрешённые placeholders: <code>{plan_name}</code>, <code>{days}</code>, <code>{expires_date}</code>, <code>{expires_datetime}</code>.</p></div></div>
+  <form method="post" action="/admin/notifications/settings" class="form-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-grid">
+      <label class="switch-label field-switch"><input type="checkbox" name="subscription_enabled" {% if values.get('notifications.subscription.enabled', true) %}checked{% endif %}> Включить напоминания</label>
+      <label>За сколько дней<input name="days_before" value="{{ values.get('notifications.subscription.days_before',[3,2,1])|join(',') }}"><small>Например: 3,2,1</small></label>
+      <label>Через сколько дней после<input name="days_after" value="{{ values.get('notifications.subscription.days_after',[1])|join(',') }}"><small>Например: 1,3,7</small></label>
+      <label class="switch-label field-switch"><input type="checkbox" name="expiry_day" {% if values.get('notifications.subscription.expiry_day', true) %}checked{% endif %}> В календарный день окончания</label>
+      <label class="switch-label field-switch"><input type="checkbox" name="at_expiry" {% if values.get('notifications.subscription.at_expiry', true) %}checked{% endif %}> После точного expires_at</label>
+      <label>Cooldown одинаковой ошибки, мин<input type="number" min="1" max="1440" name="error_cooldown_minutes" value="{{ values.get('notifications.errors.cooldown_minutes',30) }}"></label>
+    </div>
+    <label>Шаблон «за N дней»<textarea name="template_before" rows="5">{{ values.get('notifications.subscription.template_before','') }}</textarea></label>
+    <label>Шаблон «сегодня последний день»<textarea name="template_expiry_day" rows="4">{{ values.get('notifications.subscription.template_expiry_day','') }}</textarea></label>
+    <label>Шаблон «подписка закончилась»<textarea name="template_expired" rows="5">{{ values.get('notifications.subscription.template_expired','') }}</textarea></label>
+    <label>Шаблон после окончания<textarea name="template_after" rows="5">{{ values.get('notifications.subscription.template_after','') }}</textarea></label>
+    <div class="actions"><button class="button primary">Сохранить настройки</button></div>
+  </form>
+</section>
+
+<section class="card table-card section-gap">
+  <div class="table-meta"><strong>Последние 100 попыток доставки</strong></div>
+  <div class="table-wrap"><table><thead><tr><th>Время</th><th>Канал</th><th>Тип</th><th>Получатель</th><th>Статус</th><th>Ошибка</th></tr></thead><tbody>
+  {% for row in recent_logs %}<tr><td>{{ row.created_at|dt }}</td><td>{{ row.channel }}</td><td><code>{{ row.kind }}</code></td><td><code>{{ row.recipient_telegram_id }}</code></td><td><span class="badge {{ 'ok' if row.status == 'sent' else 'danger' if row.status in ['failed','blocked'] else '' }}">{{ row.status }}</span></td><td class="message-cell">{{ row.error or '—' }}</td></tr>{% else %}<tr><td colspan="6">Журнал пока пуст.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

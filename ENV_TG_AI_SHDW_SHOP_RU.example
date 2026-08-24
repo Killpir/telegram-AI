@@ -1,0 +1,90 @@
+# Domain DNS: tg-ai.shdw-shop.ru -> 31.76.120.197
+# Telegram-native admin is the default; browser admin is disabled.
+# Application
+APP_ENV=production
+APP_NAME=Telegram AI SaaS
+APP_HOST=0.0.0.0
+APP_PORT=8000
+WEB_CONCURRENCY=2
+LOG_LEVEL=INFO
+SECRET_KEY=GENERATE_WITH_OPENSSL_RAND_HEX_32
+ADMIN_SESSION_MAX_AGE_SECONDS=28800
+ADMIN_LOGIN_MAX_ATTEMPTS=5
+ADMIN_LOGIN_WINDOW_SECONDS=900
+# The web admin is disabled by default; management is done inside Telegram.
+WEB_ADMIN_ENABLED=false
+ALLOWED_HOSTS=tg-ai.shdw-shop.ru,127.0.0.1
+
+# Telegram
+BOT_TOKEN=
+BOT_DROP_PENDING_UPDATES=false
+ADMIN_TELEGRAM_IDS=YOUR_TELEGRAM_ID
+
+# OpenAI
+OPENAI_API_KEY=
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+# AI runtime defaults. The Telegram admin panel can override these through AppSetting.
+AI_PRIMARY_MODEL=gpt-5-mini
+AI_SUMMARY_MODEL=gpt-5-mini
+AI_REASONING_EFFORT=low
+# Optional. Uncomment only for models that support temperature.
+# AI_TEMPERATURE=0.7
+AI_MAX_OUTPUT_TOKENS=4096
+AI_MAX_INPUT_CHARS=16000
+AI_HISTORY_MESSAGES=12
+AI_SUMMARY_TRIGGER_MESSAGES=24
+AI_CONTEXT_MAX_CHARS=60000
+AI_REQUEST_TIMEOUT_SECONDS=60
+AI_REQUESTS_PER_MINUTE=5
+AI_REQUESTS_PER_DAY=100
+AI_REQUESTS_PER_MONTH=1000
+AI_MONTHLY_INPUT_TOKENS=5000000
+AI_MONTHLY_OUTPUT_TOKENS=1000000
+
+# PostgreSQL
+POSTGRES_DB=ai_bot
+POSTGRES_USER=ai_bot
+POSTGRES_PASSWORD=GENERATE_WITH_OPENSSL_RAND_HEX_24
+DATABASE_URL=postgresql+asyncpg://ai_bot:GENERATE_WITH_OPENSSL_RAND_HEX_24@postgres:5432/ai_bot
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+
+# Redis
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
+CELERY_RESULT_BACKEND=redis://redis:6379/2
+BROADCAST_MEDIA_DIR=/data/broadcasts
+
+# Public URLs / payment webhooks
+PUBLIC_BASE_URL=https://tg-ai.shdw-shop.ru
+# Production Compose mounts TLS_CERT_DIR containing fullchain.pem and privkey.pem.
+TLS_CERT_DIR=./certs
+WEBHOOK_SECRET=GENERATE_WITH_OPENSSL_RAND_HEX_32
+# Support / legal
+SUPPORT_USERNAME=
+TERMS_URL=
+
+# Payments
+PAYMENT_HTTP_TIMEOUT_SECONDS=30
+
+# YooMoney collection form + HTTP notifications
+YOOMONEY_RECEIVER=
+YOOMONEY_NOTIFICATION_SECRET=
+
+# YooKassa
+YOOKASSA_SHOP_ID=
+YOOKASSA_SECRET_KEY=
+YOOKASSA_BASE_URL=https://api.yookassa.ru/v3
+
+# Platega
+PLATEGA_MERCHANT_ID=
+PLATEGA_SECRET=
+PLATEGA_BASE_URL=https://app.platega.io
+
+# Crypto Pay / CryptoBot
+CRYPTOPAY_API_TOKEN=
+CRYPTOPAY_MAINNET_BASE_URL=https://pay.crypt.bot/api
+CRYPTOPAY_TESTNET_BASE_URL=https://testnet-pay.crypt.bot/api
+CRYPTOPAY_ACCEPTED_ASSETS=USDT,TON,BTC,ETH,LTC,BNB,TRX,USDC
+

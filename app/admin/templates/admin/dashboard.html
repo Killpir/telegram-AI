@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% macro chart(title, key, maximum, suffix='') %}
+<article class="card chart-card"><div class="card-head"><h2>{{ title }}</h2><small>{{ period.days }} дн.</small></div><div class="bar-chart">
+{% for row in period.series %}{% set raw=row[key] %}{% set val=raw|float %}{% set height=((val|abs) / maximum * 100) if maximum else 0 %}<div class="bar-wrap" title="{{ row.date.strftime('%d.%m.%Y') }}: {{ raw }}{{ suffix }}"><div class="bar {{ 'negative' if val < 0 else '' }}" style="height:{{ [height,100]|min }}%"></div><span>{{ row.date.strftime('%d') }}</span></div>{% endfor %}
+</div></article>
+{% endmacro %}
+{% block subtitle %}<p class="muted">Финансы и продуктовые метрики за произвольный период. Валюты не смешиваются.</p>{% endblock %}
+{% block content %}
+{% if maintenance %}<div class="banner warning">🛠 Режим технических работ включён</div>{% endif %}
+<form method="get" class="card inline-form period-form"><label>С<input type="date" name="date_from" value="{{ date_from.isoformat() }}"></label><label>По<input type="date" name="date_to" value="{{ date_to.isoformat() }}"></label><button class="button primary">Показать</button><a class="button" href="/admin">30 дней</a></form>
+<section class="metric-grid section-gap">
+  <article class="metric"><span>Регистрации</span><strong>{{ period.summary.registrations }}</strong><small>база на конец периода: {{ period.summary.user_base }}</small></article>
+  <article class="metric"><span>Покупки</span><strong>{{ period.summary.purchases }}</strong><small>{{ period.summary.paying_users }} платящих пользователей</small></article>
+  <article class="metric"><span>RUB-выручка</span><strong>{{ period.summary.revenue_rub|money }}</strong><small>комиссии ≈ {{ period.summary.payment_fees_rub|money }}</small></article>
+  <article class="metric"><span>OpenAI</span><strong>${{ '%.4f'|format(period.summary.ai_cost_usd) }}</strong><small>{{ period.summary.ai_requests }} запросов</small></article>
+  <article class="metric"><span>Gross profit, RUB</span><strong>{% if period.summary.gross_profit_rub is not none %}{{ period.summary.gross_profit_rub|money }}{% else %}—{% endif %}</strong><small>{% if period.summary.usd_to_rub > 0 %}USD/RUB {{ period.summary.usd_to_rub }}{% else %}задай USD/RUB в настройках{% endif %}</small></article>
+  <article class="metric"><span>Trial → paid</span><strong>{{ '%.1f'|format(period.summary.trial_to_paid_percent) }}%</strong><small>{{ period.summary.trial_paid_users }} / {{ period.summary.trial_users }}</small></article>
+  <article class="metric"><span>ARPU / ARPPU, RUB</span><strong>{{ period.summary.arpu_rub|money }}</strong><small>ARPPU {{ period.summary.arppu_rub|money }}</small></article>
+  <article class="metric"><span>AI cost / AI user</span><strong>${{ '%.4f'|format(period.summary.avg_ai_cost_per_user_usd) }}</strong><small>активных подписок сейчас: {{ period.summary.current_active_subscriptions }}</small></article>
+</section>
+<section class="grid-2 section-gap">
+  {{ chart('Регистрации', 'registrations', maxima.registrations) }}
+  {{ chart('Покупки', 'purchases', maxima.purchases) }}
+  {{ chart('Выручка, RUB', 'revenue_rub', maxima.revenue_rub, ' ₽') }}
+  {{ chart('OpenAI cost, USD', 'ai_cost_usd', maxima.ai_cost_usd, ' $') }}
+  {% if period.summary.gross_profit_rub is not none %}{{ chart('Gross profit, RUB', 'gross_profit_rub', maxima.gross_profit_rub, ' ₽') }}{% endif %}
+  {{ chart('Покрытие подписками', 'subscription_coverage', maxima.subscription_coverage) }}
+</section>
+<section class="grid-2 section-gap">
+  <article class="card"><h2>Выручка по валютам</h2><div class="kv">{% for currency, amount in period.summary.revenue_by_currency.items() %}<span>{{ currency }}</span><b>{{ amount }} {{ currency }}</b>{% else %}<span>Платежей нет</span><b>—</b>{% endfor %}</div></article>
+  <article class="card"><h2>Выручка по провайдерам</h2><div class="kv">{% for key, amount in period.summary.revenue_by_provider.items() %}<span>{{ key }}</span><b>{{ amount }}</b>{% else %}<span>Платежей нет</span><b>—</b>{% endfor %}</div></article>
+</section>
+<section class="grid-2 section-gap">
+  <article class="card"><h2>Токены</h2><div class="kv"><span>Input</span><b>{{ period.summary.input_tokens }}</b><span>Output</span><b>{{ period.summary.output_tokens }}</b></div></article>
+  <article class="card"><h2>Состояние сейчас</h2><div class="kv"><span>Всего пользователей</span><b>{{ stats.users.total }}</b><span>Активны сегодня</span><b>{{ stats.users.active_today }}</b><span>Заблокировали бота</span><b>{{ stats.users.blocked_bot }}</b><span>Нерешённых ошибок</span><b>{{ stats.errors_open }}</b></div></article>
+</section>
+<p class="muted section-gap">«Покрытие подписками» показывает количество периодов подписок, пересекающих конкретный день. Для старых отмен без отдельной истории смены статуса это не точный исторический снимок, поэтому метрика так и названа.</p>
+{% endblock %}

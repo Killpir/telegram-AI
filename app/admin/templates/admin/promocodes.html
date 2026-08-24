@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<details class="card" open><summary><b>Создать промокод</b></summary>
+<form method="post" action="/admin/promocodes" class="form-card promo-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% include "admin/promo_fields.html" %}<div class="actions"><button class="button primary">Создать</button></div></form></details>
+<div class="stack-lg section-gap">{% for promo,plan_name,count in promos %}<details class="card"><summary><b>{{ promo.code }}</b> <span class="badge {{ 'ok' if promo.is_active else '' }}">{{ 'ON' if promo.is_active else 'OFF' }}</span> <small>активаций: {{ count }}</small></summary><form method="post" action="/admin/promocodes/{{ promo.id }}" class="form-card promo-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% set edit=promo %}{% include "admin/promo_fields.html" %}<div class="actions"><button class="button primary">Сохранить</button></div></form></details>{% else %}<div class="card">Промокодов пока нет.</div>{% endfor %}</div>
+{% endblock %}

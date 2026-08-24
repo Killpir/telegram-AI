@@ -1,0 +1,8 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">API-ключи здесь не показываются и остаются только в .env.</p>{% endblock %}
+{% block content %}<div class="stack">
+{% for p in providers %}<form method="post" action="/admin/payment-providers/{{ p.id }}" class="card provider-row">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="provider-main"><h2>{{ p.display_name }}</h2><code>{{ p.provider }}</code> <span class="badge {{ 'ok' if configured.get(p.provider) else 'danger' }}">{{ 'configured' if configured.get(p.provider) else 'credentials missing' }}</span><p class="muted">{{ p.description or '' }}</p></div>
+<div class="provider-controls"><label class="switch-label"><input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %}> ON</label><label class="switch-label"><input type="checkbox" name="test_mode" {% if p.test_mode %}checked{% endif %}> Test mode</label><label>Комиссия %<input name="fee_percent" value="{{ p.fee_percent }}" inputmode="decimal"></label><label>Фикс. ₽<input name="fee_fixed_rub" value="{{ p.fee_fixed_rub }}" inputmode="decimal"></label><label>Порядок<input type="number" min="0" name="sort_order" value="{{ p.sort_order }}"></label><button class="button primary">Сохранить</button></div>
+</form>{% endfor %}</div>{% endblock %}

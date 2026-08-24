@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form method="post" action="/admin/ai" class="card form-card">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<h2>Runtime-настройки</h2>
+<div class="form-grid">
+<label>Основная модель<input name="primary_model" value="{{ values.get('ai.primary_model','gpt-5-mini') }}" required></label>
+<label>Модель summarization<input name="summary_model" value="{{ values.get('ai.summary_model','gpt-5-mini') }}" required></label>
+<label>Reasoning effort<input name="reasoning_effort" value="{{ values.get('ai.reasoning_effort','low') }}"></label>
+<label>Temperature<input name="temperature" value="{{ values.get('ai.temperature','') if values.get('ai.temperature') is not none else '' }}" inputmode="decimal" placeholder="не задана"></label>
+<label>Timeout, сек<input name="request_timeout_seconds" value="{{ values.get('ai.request_timeout_seconds',60) }}" inputmode="decimal" required></label>
+<label>Max output tokens<input type="number" min="128" name="max_output_tokens" value="{{ values.get('ai.max_output_tokens',4096) }}" required></label>
+<label>Max input chars<input type="number" min="256" name="max_input_chars" value="{{ values.get('ai.max_input_chars',16000) }}" required></label>
+<label>Последних сообщений<input type="number" min="2" name="history_messages" value="{{ values.get('ai.history_messages',12) }}" required></label>
+<label>Summary trigger<input type="number" min="3" name="summary_trigger_messages" value="{{ values.get('ai.summary_trigger_messages',24) }}" required></label>
+<label>Context max chars<input type="number" min="1000" name="context_max_chars" value="{{ values.get('ai.context_max_chars',60000) }}" required></label>
+<label>Requests / minute<input type="number" min="1" name="requests_per_minute" value="{{ values.get('ai.requests_per_minute',5) }}" required></label>
+<label>Requests / day<input type="number" min="1" name="requests_per_day" value="{{ values.get('ai.requests_per_day',100) }}" required></label>
+<label>Requests / month<input type="number" min="1" name="requests_per_month" value="{{ values.get('ai.requests_per_month',1000) }}" required></label>
+<label>Monthly input tokens<input type="number" min="1" name="monthly_input_tokens" value="{{ values.get('ai.monthly_input_tokens',5000000) }}" required></label>
+<label>Monthly output tokens<input type="number" min="1" name="monthly_output_tokens" value="{{ values.get('ai.monthly_output_tokens',1000000) }}" required></label>
+</div>
+<label>System prompt<textarea name="system_prompt" rows="7" required>{{ values.get('ai.system_prompt','') }}</textarea></label>
+<div class="actions"><button class="button primary">Сохранить AI-настройки</button></div>
+</form>
+<div class="section-head"><h2>Цены моделей</h2><p class="muted">USD за 1M токенов.</p></div>
+<form method="post" action="/admin/ai/pricing" class="card inline-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label class="grow">Модель<input name="model" placeholder="gpt-..." required></label>
+<label>Input<input name="input_price" inputmode="decimal" required></label>
+<label>Cached<input name="cached_input_price" inputmode="decimal" required></label>
+<label>Output<input name="output_price" inputmode="decimal" required></label>
+<label class="switch-label"><input type="checkbox" name="is_active" checked> active</label>
+<button class="button primary">Добавить</button></form>
+<div class="stack">
+{% for row in pricing %}<form method="post" action="/admin/ai/pricing/{{ row.id }}" class="card inline-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="grow"><b>{{ row.model }}</b></div>
+<label>Input<input name="input_price" value="{{ row.input_price_per_million_usd }}" inputmode="decimal"></label>
+<label>Cached<input name="cached_input_price" value="{{ row.cached_input_price_per_million_usd }}" inputmode="decimal"></label>
+<label>Output<input name="output_price" value="{{ row.output_price_per_million_usd }}" inputmode="decimal"></label>
+<label class="switch-label"><input type="checkbox" name="is_active" {% if row.is_active %}checked{% endif %}> active</label>
+<button class="button">Сохранить</button></form>{% else %}<div class="card">Модели цен ещё не добавлены.</div>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block subtitle %}<p class="muted">Статус: <strong>{{ broadcast.status }}</strong> · аудитория сейчас: {{ target_estimate }}</p>{% endblock %}
+{% block content %}
+<div class="metric-grid">
+  <div class="metric"><span>Всего</span><strong>{{ broadcast.total }}</strong></div>
+  <div class="metric"><span>Отправлено</span><strong>{{ broadcast.sent }}</strong></div>
+  <div class="metric"><span>Ошибки</span><strong>{{ broadcast.failed }}</strong></div>
+  <div class="metric"><span>Заблокировали</span><strong>{{ broadcast.blocked }}</strong></div>
+</div>
+{% if broadcast.error %}<div class="flash error">{{ broadcast.error }}</div>{% endif %}
+
+{% if broadcast.status in ['draft','scheduled'] %}
+<form method="post" action="/admin/broadcasts/{{ broadcast.id }}/update" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% include "admin/broadcast_form_fields.html" %}
+  <div class="actions"><button type="submit">Сохранить</button></div>
+</form>
+{% else %}
+<div class="card grid-2 section-gap"><div><h2>Сообщение</h2><pre>{{ broadcast.text }}</pre></div><div><h2>Фильтры</h2><pre>{{ broadcast.filters }}</pre></div></div>
+{% endif %}
+
+<section class="card section-gap">
+  <div class="card-head"><div><h2>Запуск</h2><p class="muted">Получатели фиксируются в момент фактического старта, а не при создании черновика.</p></div></div>
+  <div class="actions">
+    {% if broadcast.status in ['draft','scheduled'] %}
+    <form method="post" action="/admin/broadcasts/{{ broadcast.id }}/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit">Тест только админу</button></form>
+    <form method="post" action="/admin/broadcasts/{{ broadcast.id }}/launch" onsubmit="return confirm('Запустить рассылку по текущей аудитории?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="primary" type="submit">Запустить сейчас</button></form>
+    <form class="inline-form" method="post" action="/admin/broadcasts/{{ broadcast.id }}/schedule"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label>Дата/время UTC<input type="datetime-local" name="scheduled_at" required value="{{ broadcast.scheduled_at.strftime('%Y-%m-%dT%H:%M') if broadcast.scheduled_at else '' }}"></label><button type="submit">Запланировать</button></form>
+    {% endif %}
+    {% if broadcast.status in ['scheduled','running'] %}<form method="post" action="/admin/broadcasts/{{ broadcast.id }}/stop" onsubmit="return confirm('Остановить рассылку?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="danger-button" type="submit">Остановить рассылку</button></form>{% endif %}
+  </div>
+  {% if broadcast.test_sent_at %}<p class="muted">Последний тест: {{ broadcast.test_sent_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>{% endif %}
+</section>
+
+<section class="card table-card section-gap">
+  <div class="table-meta"><strong>Последние получатели</strong> <span class="muted">(до 200)</span></div>
+  <div class="table-wrap"><table><thead><tr><th>User</th><th>Telegram</th><th>Статус</th><th>Попытки</th><th>Message ID</th><th>Ошибка</th></tr></thead><tbody>
+  {% for r,u in recipients %}<tr><td><a href="/admin/users/{{ u.id }}">#{{ u.id }} @{{ u.username or '—' }}</a></td><td>{{ u.telegram_id }}</td><td>{{ r.status }}</td><td>{{ r.attempts }}</td><td>{{ r.telegram_message_id or '—' }}</td><td class="message-cell">{{ r.error or '—' }}</td></tr>{% else %}<tr><td colspan="6" class="muted">Получатели появятся после запуска.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}
